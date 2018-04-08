@@ -2,7 +2,7 @@ import argparse
 import time
 import msgpack
 from enum import Enum, auto
-
+import csv 
 import numpy as np
 
 from planning_utils import a_star, heuristic, create_grid
@@ -120,6 +120,19 @@ class MotionPlanning(Drone):
         self.target_position[2] = TARGET_ALTITUDE
 
         # TODO: read lat0, lon0 from colliders into floating point values
+        with open('colliders.csv', newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                lhs, rhs = row[0],row[1]
+                break
+    
+        
+        _, lat = lhs.split()
+       
+        _, lon = rhs.split()
+        lat0, lon0 = float(lat),float(lon)
+        print("this is it")
+        print(lat0,lon0)
         
         # TODO: set home position to (lon0, lat0, 0)
 
