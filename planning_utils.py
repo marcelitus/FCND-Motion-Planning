@@ -55,7 +55,13 @@ class Action(Enum):
     EAST = (0, 1, 1)
     NORTH = (-1, 0, 1)
     SOUTH = (1, 0, 1)
-
+    
+    # New diagonal actions
+    SOUTHWEST = (1, -1, 1.41)
+    NORTHWEST = (-1, -1, 1.41)
+    SOUTHEAST = (1, 1, 1.41)
+    NORTHEAST = (-1, 1, 1.41)
+    
     @property
     def cost(self):
         return self.value[2]
@@ -75,7 +81,7 @@ def valid_actions(grid, current_node):
 
     # check if the node is off the grid or
     # it's an obstacle
-
+    # Add in new removals for diagonals
     if x - 1 < 0 or grid[x - 1, y] == 1:
         valid_actions.remove(Action.NORTH)
     if x + 1 > n or grid[x + 1, y] == 1:
@@ -84,6 +90,14 @@ def valid_actions(grid, current_node):
         valid_actions.remove(Action.WEST)
     if y + 1 > m or grid[x, y + 1] == 1:
         valid_actions.remove(Action.EAST)
+    if grid[x - 1, y - 1] == 1:
+         valid_actions.remove(Action.NORTHWEST)
+    if grid[x + 1, y - 1] == 1:
+         valid_actions.remove(Action.SOUTHWEST)
+    if grid[x - 1, y + 1] == 1:
+         valid_actions.remove(Action.NORTHEAST)
+    if grid[x + 1, y + 1] == 1:
+         valid_actions.remove(Action.SOUTHEAST)    
 
     return valid_actions
 
