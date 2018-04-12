@@ -4,8 +4,10 @@ import msgpack
 from enum import Enum, auto
 import csv 
 import numpy as np
+from skimage.morphology import medial_axis
+from skimage.util import invert
 
-from planning_utils import a_star, heuristic, create_grid, prune_path
+from planning_utils import a_star, heuristic, create_grid, prune_path, lat_lon_goal, find_start_goal
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
@@ -134,15 +136,15 @@ class MotionPlanning(Drone):
         
         
         # TODO: set home position to (lon0, lat0, 0)
-        
+    
         self.set_home_position(lon0, lat0, 0)
-        
+
         # TODO: retrieve current global position
         global_position = self.global_position
-        
+    
         # TODO: convert to current local position using global_to_local()
     
-        local_position = global_to_local(self.global_position, self.global_home)
+        local_position = global_to_local(global_position, self.global_home)
         print(local_position[1], local_position[0])
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
                                                                          self.local_position))
@@ -153,18 +155,33 @@ class MotionPlanning(Drone):
         grid, north_offset, east_offset = create_grid(data, TARGET_ALTITUDE, SAFETY_DISTANCE)
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
-        grid_start = (-north_offset, -east_offset)
-        # TODO: convert start position to current position rather than map center
-        #grid_start = (local_position[1],local_position[0])
+        #grid_start = (-north_offset, -east_offset)
+        # TODO: convert start position to curren0t position rather than map center
+        grid_start = (abs(int(local_position[1])) - north_offset,abs(int(local_position[0])) - east_offset)
         # Set goal as some arbitrary position on the grid
         # grid_goal = (-north_offset + 10, -east_offset + 10)
-        grid_goal = (200, 200)
+        #grid_goal = (200, 200)
+       
+
         # TODO: adapt to set goal as latitude / longitude position and convert
+        goal_y, goal_x = lat_lon_goal(37.796391, -122.398300, self.global_home)
+     #   grid_goal = (749, 367)
+        print(goal_y - north_offset, goal_x - east_offset)
+        grid_goal = (int(goal_y - north_offset), int(goal_x - east_offset))
+        
+        #Need to cehck if start and goal are in free space
+        skeleton = medial_axis(invert(grid))
+        skel_start, skel_goal = find_start_goal(skeleton, grid_start, grid_goal)
 
         # Run A* to find a path from start to goal
         # TODO: add diagonal motions with a cost of sqrt(2) to your A* implementation
         # or move to a different search space such as a graph (not done here)
         print('Local Start and Goal: ', grid_start, grid_goal)
+        print('Local Modified Start and Goal: ', skel_start, skel_goal)
+        grid_start = int(skel_start[0]), int(skel_start[1])
+        grid_goal = int(skel_goal[0]), int(skel_goal[1])
+        print('Local Start and Goal: ', grid_start, grid_goal)
+    #    path, _ = a_star(grid, heuristic, ), (skel_goal[0], skel_goal[1] ))
         path, _ = a_star(grid, heuristic, grid_start, grid_goal)
         # TODO: prune path to minimize number of waypoints
         pruned_path = prune_path(path)

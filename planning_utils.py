@@ -1,7 +1,7 @@
 from enum import Enum
 from queue import PriorityQueue
 import numpy as np
-
+from udacidrone.frame_utils import global_to_local
 
 def create_grid(data, drone_altitude, safety_distance):
     """
@@ -82,6 +82,7 @@ def valid_actions(grid, current_node):
     # check if the node is off the grid or
     # it's an obstacle
     # Add in new removals for diagonals
+   
     if x - 1 < 0 or grid[x - 1, y] == 1:
         valid_actions.remove(Action.NORTH)
     if x + 1 > n or grid[x + 1, y] == 1:
@@ -161,12 +162,14 @@ def heuristic(position, goal_position):
 def point(p):
     return np.array([p[0], p[1], 1.]).reshape(1, -1)
 
-def collinearity_check(p1, p2, p3, epsilon=1e-6):   
+def collinearity_check(p1, p2, p3, epsilon=1e-6):
+    #Collinearity_check from lessons   
     m = np.concatenate((p1, p2, p3), 0)
     det = np.linalg.det(m)
     return abs(det) < epsilon
 
 def prune_path(path):
+    #Prune Path funciton from lessons
     pruned_path = [p for p in path]
     i = 0
     while i < len(pruned_path) - 2:
@@ -187,3 +190,20 @@ def prune_path(path):
         else:
             i += 1
     return pruned_path
+
+def lat_lon_goal(goal_lat, goal_lon, in_global_home):
+    #Receives the goal longitude, latitude and the global_home locaiton and returns the local 
+    # goal position
+    latlonposiion = [goal_lon, goal_lat, 0]
+    local_y, local_x, _ = global_to_local(latlonposiion, in_global_home)
+    return local_y, local_x
+
+def find_start_goal(skel, start, goal):
+    # Medial Axis method to find a goal_start and goal_end that is in free space
+    # from lessons
+    skel_cells = np.transpose(skel.nonzero())
+    start_min_dist = np.linalg.norm(np.array(start) - np.array(skel_cells),                                    axis=1).argmin()
+    near_start = skel_cells[start_min_dist]
+    goal_min_dist = np.linalg.norm(np.array(goal) - np.array(skel_cells),                                    axis=1).argmin()
+    near_goal = skel_cells[goal_min_dist]
+    return near_start, near_goal
