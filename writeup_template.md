@@ -31,7 +31,7 @@ It has a new state Planning where the waypint planning happens. This includes se
 
 Some examples of the most important coded in my view:
 
-    a. Addition of new state: PLANNING = auto() - It uses the auto() function whihch replaces it with an apprpiate number instead of pre-assigning a number.  
+a. Addition of new state: PLANNING = auto() - It uses the auto() function whihch replaces it with an apprpiate number instead of pre-assigning a number.  
     b. Initialization of the plan_path funciton where the actual path planning is done:
 ```python
     def plan_path(self):
@@ -43,7 +43,7 @@ Some examples of the most important coded in my view:
         self.target_position[2] = TARGET_ALTITUDE 
         
 ```
-    b.  Loading of the obstacle map and creation of the grid
+b.  Loading of the obstacle map and creation of the grid:
 ```python
         # Read in obstacle map
         data = np.loadtxt('colliders.csv', delimiter=',', dtype='Float64', skiprows=2)
